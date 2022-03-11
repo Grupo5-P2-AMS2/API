@@ -6,7 +6,7 @@ var MongoClient = require('mongodb').MongoClient;
 
 
 app.get('/', function (req, res) {
-  res.message("Hello world!")
+  res.send("Hello world!")
 });
 
 //Retorno de datos de ejemplo
