@@ -11,13 +11,13 @@ app.get('/', function (req, res) {
 
 //Retorno de datos de ejemplo
 app.get('/datos', function (req, res) {
-  MongoClient.connect('mongodb://localhost:27017', async function (err, client) {
+  MongoClient.connect('mongodb+srv://victor:1Victormerch@cluster0.vudsg.mongodb.net/myFirstDatabase?retryWrites=true&w=majority', async function (err, client) {
 
         if (err) throw err;
     
-        var db = client.db('EjemploProjecto');
+        var db = client.db('ClassVRroomDB');
         
-        const findResult = await db.collection('Ejemplo').find().toArray();
+        const findResult = await db.collection('Courses').find().toArray();
         res.json(findResult);
     })
 });
