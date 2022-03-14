@@ -11,8 +11,7 @@ app.get('/', function (req, res) {
 
 //Retorno de datos de ejemplo
 app.get('/datos', function (req, res) {
-  MongoClient.connect('mongodb+srv://victor:1Victormerch@cluster0.vudsg.mongodb.net/myFirstDatabase?retryWrites=true&w=majority', async function (err, client) {
-
+  MongoClient.connect('mongodb+srv://victor:WzRZK8JRGBo8dyML@cluster0.vudsg.mongodb.net/myFirstDatabase?retryWrites=true&w=majority', async function (err, client) {
         if (err) throw err;
     
         var db = client.db('ClassVRroomDB');
