@@ -2,22 +2,38 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 5000
 const mongoose = require('mongoose');
-var MongoClient = require('mongodb').MongoClient;
+//Importamos los modelos
+const UserModel = require('./models/users')
+const CourseModel = require('./models/courses')
 
+//Nos conectamos al mongoAtlas
+mongoose.connect('mongodb+srv://victor:WzRZK8JRGBo8dyML@cluster0.vudsg.mongodb.net/ClassVRroomDB?retryWrites=true&w=majority')
+
+//Rutas de la API tipo GET
 
 app.get('/', function (req, res) {
   res.send("Hello world!")
 });
 
-//Retorno de datos de ejemplo
-app.get('/datos', function (req, res) {
-  MongoClient.connect('mongodb+srv://victor:WzRZK8JRGBo8dyML@cluster0.vudsg.mongodb.net/myFirstDatabase?retryWrites=true&w=majority', async function (err, client) {
-        if (err) throw err;
-    
-        var db = client.db('ClassVRroomDB');
-        
-        const findResult = await db.collection('Courses').find().toArray();
-        res.json(findResult);
-    })
+//Ruta para ver los cursos
+app.get('/courses', function (req, res) {
+  CourseModel.find(function (err, users) {
+    if (err) {
+      res.send(err);
+    }
+    res.json(users);
+  });
+
 });
+
+//Ruta para ver los usuarios (alumnos y profesores)
+app.get('/users', function (req, res) {
+  UserModel.find(function (err, users) {
+    if (err) {
+      res.send(err);
+    }
+    res.json(users);
+  });
+  
+})
 app.listen(PORT, () => console.log(`Listening on ${ PORT }`));
