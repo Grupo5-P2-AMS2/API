@@ -56,8 +56,9 @@ app.get('/api/login',function(req,res){
         message = "Wrong credentials";
         res.json({'status':status,'message':message})
       }else{
+        message = "OK";
         session_token = crypto.randomBytes(20).toString(password);
-        res.send(session_token)
+        res.send({'message':message,"session_token":session_token})
       }
   });
 
