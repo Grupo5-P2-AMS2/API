@@ -48,8 +48,8 @@ app.use(function(req, res, next) {
   //2. Generar el token y meterlo en la base de datos
   
   app.get('/api/login',function(req,res){
-    var username = req.body.username;
-    var password = req.body.password;
+    var username = req.query.username;
+    var password = req.query.password;
     var status,message = "";
     var session_token = null;
   
