@@ -7,7 +7,8 @@ var UserSchema = new mongoose.Schema({
     email:String,
     role:String,
     session_token:String,
-    session_token_expiration_date:Number
+    session_token_expiration_date:Number,
+    password:String
 });
 
 module.exports = mongoose.model('Users', UserSchema, 'Users');

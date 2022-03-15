@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 
 var CourseSchema = new mongoose.Schema({
-	suscibers:Object,
+	suscribers:Object,
     elements:Array,
     tasks:Array,
     vr_tasks:Array
