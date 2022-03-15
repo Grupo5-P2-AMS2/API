@@ -108,7 +108,7 @@ app.use(function(req, res, next) {
       }else{
         var id = docs[0].ID;
         var role = docs[0].role;
-        //2. Buscamos los cursos que tengan ese curso
+        //2. Buscamos los cursos que tengan ese usuario
         if(role=="student"){
           CourseModel.find({"subscribers.students":docs[0].ID},function(err,docs){
             res.json({"status":"OK","course_list":docs})
