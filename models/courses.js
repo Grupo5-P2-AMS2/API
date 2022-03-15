@@ -1,7 +1,12 @@
 var mongoose = require('mongoose');
 
 var CourseSchema = new mongoose.Schema({
-	suscribers:Object,
+    title:String,
+    description:String,
+	subscribers:{
+        teachers:Array,
+        students:Array
+    },
     elements:Array,
     tasks:Array,
     vr_tasks:Array

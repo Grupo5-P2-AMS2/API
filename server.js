@@ -10,11 +10,13 @@ const crypto = require('crypto')
 //Nos conectamos al mongoAtlas
 mongoose.connect('mongodb+srv://victor:WzRZK8JRGBo8dyML@cluster0.vudsg.mongodb.net/ClassVRroomDB?retryWrites=true&w=majority')
 
-//Rutas de la API tipo GET
+
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
+
+  //Rutas de la API tipo GET
   app.get('/', function (req, res) {
     res.send("Hello world!")
   });
@@ -81,7 +83,7 @@ app.use(function(req, res, next) {
   
   //Aqui solo tendremos que eliminar el token que nos llega de la base de datos
   app.get('/api/logout',function(req,res){
-    UserModel.updateOne({ session_token: req.query.session_token }, 
+    UserModel.updateOne({session_token: req.query.session_token }, 
             {session_token:""}, function (err, docs) {
             if (err){
                 console.log(err)
@@ -92,6 +94,34 @@ app.use(function(req, res, next) {
                 res.json({'status':"OK","message":"Session successfully closed."});
             }
     });
+  })
+
+
+  //Get course
+  
+  
+  app.get('/api/get_courses',function(req,res){
+    //1. Buscamos el usuario con ese token
+    UserModel.find({ session_token:req.query.session_token}, function (err, docs) {
+      if(docs.length == 0){
+        res.json({"status":"ERROR","message":"session_token is required"})
+      }else{
+        var id = docs[0].ID;
+        var role = docs[0].role;
+        //2. Buscamos los cursos que tengan ese curso
+        if(role=="student"){
+          CourseModel.find({"subscribers.students":docs[0].ID},function(err,docs){
+            res.json({"status":"OK","course_list":docs})
+          })
+        }else{
+          CourseModel.find({"subscribers.teachers":docs[0].ID},function(err,docs){
+            res.json({"status":"OK","course_list":docs})
+          })
+        }
+        
+      }
+    })
+
   })
 }); 
 
