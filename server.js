@@ -60,9 +60,19 @@ app.use(function(req, res, next) {
           res.json({'status':status,'message':message})
         }else{
           status = "OK";
-          session_token = crypto.randomBytes(20).toString(password);
-          res.send({'status':status,"session_token":session_token})
+          session_token = crypto.randomBytes(20).toString('hex');
+          //session_token ='aa';
           //Me queda meterlo en la base de datos
+          UserModel.updateOne({first_name: username, password: password}, 
+            {session_token:session_token}, function (err, docs) {
+            if (err){
+                console.log(err)
+            }
+            else{
+                console.log("Updated Docs : ", docs);
+              }
+          });
+          res.send({'status':status,"session_token":session_token})
         }
     });
     
@@ -71,12 +81,17 @@ app.use(function(req, res, next) {
   
   //Aqui solo tendremos que eliminar el token que nos llega de la base de datos
   app.get('/api/logout',function(req,res){
-    UserModel.updateOne({ session_token: req.body.session_token }, {$set: {session_token: "0"}},
-      function(error, info) {
-  
+    UserModel.updateOne({ session_token: "aa" }, 
+            {session_token:""}, function (err, docs) {
+            if (err){
+                console.log(err)
+                res.json({'status':"ERROR","message":"session_token is required"});
+            }
+            else{
+                console.log("Updated Docs : ", docs);
+                res.json({'status':"OK","message":"Session successfully closed."});
+            }
     });
-      
-  
   })
 }); 
 
