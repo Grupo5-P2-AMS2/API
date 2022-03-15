@@ -45,8 +45,8 @@ app.get('/users', function (req, res) {
 //2. Generar el token y meterlo en la base de datos
 
 app.get('/api/login',function(req,res){
-  var username = req.query.username;
-  var password = req.query.password;
+  var username = req.body.username;
+  var password = req.body.password;
   var status,message = "";
   var session_token = null;
 
@@ -56,17 +56,26 @@ app.get('/api/login',function(req,res){
         message = "Wrong credentials";
         res.json({'status':status,'message':message})
       }else{
-        message = "OK";
+        status = "OK";
         session_token = crypto.randomBytes(20).toString(password);
-        res.send({'message':message,"session_token":session_token})
+        res.send({'status':status,"session_token":session_token})
+        //Me queda meterlo en la base de datos
       }
   });
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
 
 })
 
-//Aqui solo tendremos que eliminar el token de la base de datos
+//Aqui solo tendremos que eliminar el token que nos llega de la base de datos
 app.get('/api/logout',function(req,res){
-  
+  UserModel.updateOne({ session_token: req.body.session_token }, {$set: {session_token: "0"}},
+    function(error, info) {
+
+  });
+    
+
 })
 
 app.listen(PORT, () => console.log(`Listening on ${ PORT }`));
