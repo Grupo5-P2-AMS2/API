@@ -81,7 +81,7 @@ app.use(function(req, res, next) {
   
   //Aqui solo tendremos que eliminar el token que nos llega de la base de datos
   app.get('/api/logout',function(req,res){
-    UserModel.updateOne({ session_token: "aa" }, 
+    UserModel.updateOne({ session_token: req.query.session_token }, 
             {session_token:""}, function (err, docs) {
             if (err){
                 console.log(err)
