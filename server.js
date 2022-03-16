@@ -10,11 +10,13 @@ const crypto = require('crypto')
 //Nos conectamos al mongoAtlas
 mongoose.connect('mongodb+srv://victor:WzRZK8JRGBo8dyML@cluster0.vudsg.mongodb.net/ClassVRroomDB?retryWrites=true&w=majority')
 
-//Rutas de la API tipo GET
+
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
+
+  //Rutas de la API tipo GET
   app.get('/', function (req, res) {
     res.send("Hello world!")
   });
@@ -60,7 +62,7 @@ app.use(function(req, res, next) {
           res.json({'status':status,'message':message})
         }else{
           status = "OK";
-          session_token = crypto.randomBytes(20).toString('hex');
+          session_token = get_token(docs[0]);
           //session_token ='aa';
           //Me queda meterlo en la base de datos
           UserModel.updateOne({first_name: username, password: password}, 
@@ -81,7 +83,7 @@ app.use(function(req, res, next) {
   
   //Aqui solo tendremos que eliminar el token que nos llega de la base de datos
   app.get('/api/logout',function(req,res){
-    UserModel.updateOne({ session_token: req.query.session_token }, 
+    UserModel.updateOne({session_token: req.query.session_token }, 
             {session_token:""}, function (err, docs) {
             if (err){
                 console.log(err)
@@ -93,7 +95,78 @@ app.use(function(req, res, next) {
             }
     });
   })
+
+
+  //Get course
+  app.get('/api/get_courses',function(req,res){
+    //1. Buscamos el usuario con ese token
+    UserModel.find({ session_token:req.query.session_token}, function (err, docs) {
+      if(docs.length == 0){
+        res.json({"status":"ERROR","message":"session_token is required"})
+      }else{
+        var id = docs[0].ID;
+        
+        //2. Buscamos los cursos que tengan ese usuario
+        CourseModel.find({$or:[{"subscribers.students":id},{"subscribers.teachers":id}]},function(err,docs){
+          if(docs.length == 0){
+            res.json({"status":"ERROR","message":"session_token is required"})
+          }else{
+            res.json({"status":"OK","course_list":docs})
+          }
+        })
+      }
+    })
+  })
+
+  //Get Course Details
+  app.get('/api/get_course_details',function(req,res){
+    //1. Buscamos el usuario con ese token
+    var _id = req.query.courseID;
+    UserModel.find({ session_token:req.query.session_token}, function (err, docs) {
+      if(docs.length == 0){
+        res.json({"status":"ERROR","message":"Insufficient permissions."})
+      }else{
+        var id = docs[0].ID;//Almacenamos la id del usuario
+        //2. Buscamos que exista el courseID
+        //3. Buscamos los cursos que tengan ese usuario
+        CourseModel.find({$and :[{$or:[{"subscribers.students":id},{"subscribers.teachers":id}]},{"_id":_id}]},function(err,docs){
+          if(docs.length == 0){
+            res.json({"status":"ERROR","message":"courseID is required"})
+          }
+          else{
+            res.json({"status":"OK","course":docs})
+          }
+        })
+        
+      }
+    })
+  })
+
+
 }); 
 
 
 app.listen(PORT, () => console.log(`Listening on ${ PORT }`));
+
+//Esto lo tengo que meter en functions.js
+function get_token(user) {
+  if (user.session_token != '') {
+    if (Date.now() < user.session_token_expiration_date) {
+      return user.session_token;
+    }
+  }
+  var random = Math.floor(Math.random() * 1000);
+  var new_token = crypto.createHash('md5').update(user.first_name + user.password + random).digest('hex');
+  var expiration_time = new Date(parseInt(Date.now()) + parseInt(process.env.TOKEN_EXPIRATION_TIME));
+  
+  UserModel.updateOne({first_name: user.first_name, password: user.password}, 
+    {session_token_expiration_date: expiration_time}, function (err, docs) {
+    if (err){
+        console.log(err)
+    }
+    else{
+        console.log("Updated Docs : ", docs);
+      }
+  });
+  return new_token;
+}
