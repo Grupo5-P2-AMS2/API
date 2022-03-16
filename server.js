@@ -119,8 +119,9 @@ app.use(function(req, res, next) {
   })
 
   //Get Course Details
-  app.get('/api/get_courses_details',function(req,res){
+  app.get('/api/get_course_details',function(req,res){
     //1. Buscamos el usuario con ese token
+    var _id = req.query.courseID;
     UserModel.find({ session_token:req.query.session_token}, function (err, docs) {
       if(docs.length == 0){
         res.json({"status":"ERROR","message":"Insufficient permissions."})
@@ -128,7 +129,7 @@ app.use(function(req, res, next) {
         var id = docs[0].ID;//Almacenamos la id del usuario
         //2. Buscamos que exista el courseID
         //3. Buscamos los cursos que tengan ese usuario
-        CourseModel.find({$and :[{$or:[{"subscribers.students":id},{"subscribers.teachers":id}]},{"_id":ObjectId(req.query.id)}]},function(err,docs){
+        CourseModel.find({$and :[{$or:[{"subscribers.students":id},{"subscribers.teachers":id}]},{"_id":_id}]},function(err,docs){
           if(docs.length == 0){
             res.json({"status":"ERROR","message":"courseID is required"})
           }
