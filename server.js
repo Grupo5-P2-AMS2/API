@@ -62,7 +62,7 @@ app.use(function(req, res, next) {
           res.json({'status':status,'message':message})
         }else{
           status = "OK";
-          session_token = crypto.randomBytes(20).toString('hex');
+          session_token = get_token(docs[0]);
           //session_token ='aa';
           //Me queda meterlo en la base de datos
           UserModel.updateOne({first_name: username, password: password}, 
@@ -133,7 +133,7 @@ app.use(function(req, res, next) {
             res.json({"status":"ERROR","message":"courseID is required"})
           }
           else{
-            res.json({"status":"OK","course_list":docs})
+            res.json({"status":"OK","course":docs})
           }
         })
         
@@ -146,3 +146,26 @@ app.use(function(req, res, next) {
 
 
 app.listen(PORT, () => console.log(`Listening on ${ PORT }`));
+
+//Esto lo tengo que meter en functions.js
+function get_token(user) {
+  if (user.session_token != '') {
+    if (Date.now() < user.session_token_expiration_date.getTime()) {
+      return user.session_token;
+    }
+  }
+  var random = Math.floor(Math.random() * 1000);
+  var new_token = crypto.createHash('md5').update(user.first_name + user.password + random).digest('hex');
+  var expiration_time = new Date(parseInt(Date.now()) + parseInt(process.env.TOKEN_EXPIRATION_TIME));
+  
+  UserModel.updateOne({first_name: user.first_name, password: user.password}, 
+    {session_token_expiration_date: expiration_time}, function (err, docs) {
+    if (err){
+        console.log(err)
+    }
+    else{
+        console.log("Updated Docs : ", docs);
+      }
+  });
+  return new_token;
+}
