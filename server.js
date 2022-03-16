@@ -150,7 +150,7 @@ app.listen(PORT, () => console.log(`Listening on ${ PORT }`));
 //Esto lo tengo que meter en functions.js
 function get_token(user) {
   if (user.session_token != '') {
-    if (Date.now() < user.session_token_expiration_date.getTime()) {
+    if (Date.now() < user.session_token_expiration_date) {
       return user.session_token;
     }
   }
