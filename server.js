@@ -127,19 +127,13 @@ app.use(function(req, res, next) {
       }else{
         var id = docs[0].ID;//Almacenamos la id del usuario
         //2. Buscamos que exista el courseID
-        CourseModel.find({"_id":req.query.id},function(err,docs){
+        //3. Buscamos los cursos que tengan ese usuario
+        CourseModel.find({$and :[{$or:[{"subscribers.students":id},{"subscribers.teachers":id}]},{"_id":ObjectId(req.query.id)}]},function(err,docs){
           if(docs.length == 0){
             res.json({"status":"ERROR","message":"courseID is required"})
           }
           else{
-            //3. Buscamos los cursos que tengan ese usuario
-            CourseModel.find({$or:[{"subscribers.students":id},{"subscribers.teachers":id}]},function(err,docs){
-              if(docs.length == 0){
-                res.json({"status":"ERROR","message":"Insufficient permissions."})
-              }else{
-                res.json({"status":"OK","course_list":docs})
-              }
-            })
+            res.json({"status":"OK","course_list":docs})
           }
         })
         
