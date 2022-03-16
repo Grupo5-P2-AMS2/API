@@ -107,15 +107,9 @@ app.use(function(req, res, next) {
         var id = docs[0].ID;
         
         //2. Buscamos los cursos que tengan ese usuario
-        CourseModel.find({"subscribers.students":id},function(err,docs){
+        CourseModel.find({$or:[{"subscribers.students":id},{"subscribers.teachers":id}]},function(err,docs){
           if(docs.length == 0){
-            CourseModel.find({"subscribers.teachers":id},function(err,docs){
-              if(docs.length == 0){
-                res.json({"status":"ERROR","message":"session_token is required"})
-              }else{
-                res.json({"status":"OK","course_list":docs})
-              }
-            })
+            res.json({"status":"ERROR","message":"session_token is required"})
           }else{
             res.json({"status":"OK","course_list":docs})
           }
@@ -139,15 +133,9 @@ app.use(function(req, res, next) {
           }
           else{
             //3. Buscamos los cursos que tengan ese usuario
-            CourseModel.find({"subscribers.students":id},function(err,docs){
+            CourseModel.find({$or:[{"subscribers.students":id},{"subscribers.teachers":id}]},function(err,docs){
               if(docs.length == 0){
-                CourseModel.find({"subscribers.teachers":id},function(err,docs){
-                  if(docs.length == 0){
-                    res.json({"status":"ERROR","message":"Insufficient permissions."})
-                  }else{
-                    res.json({"status":"OK","course_list":docs})
-                  }
-                })
+                res.json({"status":"ERROR","message":"Insufficient permissions."})
               }else{
                 res.json({"status":"OK","course_list":docs})
               }
