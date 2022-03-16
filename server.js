@@ -98,8 +98,6 @@ app.use(function(req, res, next) {
 
 
   //Get course
-  
-  
   app.get('/api/get_courses',function(req,res){
     //1. Buscamos el usuario con ese token
     UserModel.find({ session_token:req.query.session_token}, function (err, docs) {
@@ -107,22 +105,61 @@ app.use(function(req, res, next) {
         res.json({"status":"ERROR","message":"session_token is required"})
       }else{
         var id = docs[0].ID;
-        var role = docs[0].role;
+        
         //2. Buscamos los cursos que tengan ese usuario
-        if(role=="student"){
-          CourseModel.find({"subscribers.students":docs[0].ID},function(err,docs){
+        CourseModel.find({"subscribers.students":id},function(err,docs){
+          if(docs.length == 0){
+            CourseModel.find({"subscribers.teachers":id},function(err,docs){
+              if(docs.length == 0){
+                res.json({"status":"ERROR","message":"session_token is required"})
+              }else{
+                res.json({"status":"OK","course_list":docs})
+              }
+            })
+          }else{
             res.json({"status":"OK","course_list":docs})
-          })
-        }else{
-          CourseModel.find({"subscribers.teachers":docs[0].ID},function(err,docs){
-            res.json({"status":"OK","course_list":docs})
-          })
-        }
+          }
+        })
+      }
+    })
+  })
+
+  //Get Course Details
+  app.get('/api/get_courses_details',function(req,res){
+    //1. Buscamos el usuario con ese token
+    UserModel.find({ session_token:req.query.session_token}, function (err, docs) {
+      if(docs.length == 0){
+        res.json({"status":"ERROR","message":"Insufficient permissions."})
+      }else{
+        var id = docs[0].ID;//Almacenamos la id del usuario
+        //2. Buscamos que exista el courseID
+        CourseModel.find({"_id":req.query.id},function(err,docs){
+          if(docs.length == 0){
+            res.json({"status":"ERROR","message":"courseID is required"})
+          }
+          else{
+            //3. Buscamos los cursos que tengan ese usuario
+            CourseModel.find({"subscribers.students":id},function(err,docs){
+              if(docs.length == 0){
+                CourseModel.find({"subscribers.teachers":id},function(err,docs){
+                  if(docs.length == 0){
+                    res.json({"status":"ERROR","message":"Insufficient permissions."})
+                  }else{
+                    res.json({"status":"OK","course_list":docs})
+                  }
+                })
+              }else{
+                res.json({"status":"OK","course_list":docs})
+              }
+            })
+          }
+        })
         
       }
     })
-
   })
+
+
 }); 
 
 

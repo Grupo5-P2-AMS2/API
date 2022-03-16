@@ -1,3 +1,4 @@
+const { ObjectId, Int32 } = require('mongodb');
 var mongoose = require('mongoose');
 
 var CourseSchema = new mongoose.Schema({
@@ -7,8 +8,22 @@ var CourseSchema = new mongoose.Schema({
         teachers:Array,
         students:Array
     },
-    elements:Array,
-    tasks:Array,
+    elements:[{ID:Number,
+                type:String,
+                title:String,
+                description:String,
+                order:Number,
+                contents:String
+            }],
+    tasks:[{ID:Number,
+            type:String,
+            title:String,
+            description:String,
+            order:Number,
+            uploads:[{
+
+            }]}
+    ],
     vr_tasks:Array
 });
 
