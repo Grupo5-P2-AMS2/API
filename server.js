@@ -98,7 +98,7 @@ app.use(function(req, res, next) {
 
 
   //Get course
-  app.get('/api/get_courses', async function(req,res){
+  app.get('/api/get_courses', function(req,res){
     //1. Buscamos el usuario con ese token
     UserModel.find({ session_token:req.query.session_token}, function (err, docs) {
       if(docs.length == 0){
@@ -107,7 +107,7 @@ app.use(function(req, res, next) {
         var id = docs[0].ID;
         
         //2. Buscamos los cursos que tengan ese usuario
-        CourseModel.find({$or:[{"subscribers.students":id},{"subscribers.teachers":id}]},function(err,docs){
+        CourseModel.find({$or:[{"subscribers.students":id},{"subscribers.teachers":id}]}, async function(err,docs){
           if(docs.length == 0){
             res.json({"status":"ERROR","message":"session_token is required"})
           }else{
@@ -115,11 +115,11 @@ app.use(function(req, res, next) {
             //sacar el nombre y modificar la variable
             for(var i = 0;i< docs;i++){
               for(var y = 0;y< docs[i].subscribers.teachers;y++){
-                const query = await UserModel.findOne({ ID: docs[i].subscribers.teachers[y]});
+                var query = await UserModel.findOne({ ID: docs[i].subscribers.teachers[y]});
                 docs[i].subscribers.teachers[y] = query.first_name;
               }
               for(var y = 0;y< docs[i].subscribers.students;y++){
-                const query = await UserModel.findOne({ ID: docs[i].subscribers.students[y]});
+                var query = await UserModel.findOne({ ID: docs[i].subscribers.students[y]});
                 docs[i].subscribers.students[y] = query.first_name;
               }
             }
