@@ -137,9 +137,24 @@ app.use(function(req, res, next) {
             res.json({"status":"OK","course":docs})
           }
         })
-        
       }
     })
+  })
+  
+  //Endpoint para el ERP de Navision
+  app.get('/api/export_database',function(req,res){
+    var user = req.query.user;
+    var password = req.query.password;
+    UserModel.find({ first_name: "super", password: "1234" }, function (err, docs) {
+          if(docs.length == 0){
+            res.json({"status":"ERROR","message":"Insufficient permissions."})
+          }else{
+            CourseModel.find({}, function (err, docs) {
+              res.json(docs)
+            })
+          }
+    })
+
   })
 
 
