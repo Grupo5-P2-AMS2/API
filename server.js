@@ -98,7 +98,7 @@ app.use(function(req, res, next) {
 
 
   //Get course
-  app.get('/api/get_courses',function(req,res){
+  app.get('/api/get_courses', async function(req,res){
     //1. Buscamos el usuario con ese token
     UserModel.find({ session_token:req.query.session_token}, function (err, docs) {
       if(docs.length == 0){
@@ -111,6 +111,19 @@ app.use(function(req, res, next) {
           if(docs.length == 0){
             res.json({"status":"ERROR","message":"session_token is required"})
           }else{
+            //for para mirar la id de cada usuario y buscarla
+            //sacar el nombre y modificar la variable
+            for(var i = 0;i< docs;i++){
+              for(var y = 0;y< docs[i].subscribers.teachers;y++){
+                const query = await UserModel.findOne({ ID: docs[i].subscribers.teachers[y]});
+                docs[i].subscribers.teachers[y] = query.first_name;
+              }
+              for(var y = 0;y< docs[i].subscribers.students;y++){
+                const query = await UserModel.findOne({ ID: docs[i].subscribers.students[y]});
+                docs[i].subscribers.students[y] = query.first_name;
+              }
+            }
+            
             res.json({"status":"OK","course_list":docs})
           }
         })
