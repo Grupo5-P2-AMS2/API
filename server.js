@@ -115,12 +115,12 @@ app.use(function(req, res, next) {
             //sacar el nombre y modificar la variable
             for(var i = 0;i< docs;i++){
               for(var y = 0;y< docs[i].subscribers.teachers;y++){
-                var query = await UserModel.findOne({ ID: docs[i].subscribers.teachers[y]});
-                docs[i].subscribers.teachers[y] = query.first_name;
+                var query = await UserModel.find({ ID: docs[i].subscribers.teachers[y]});
+                docs[i].subscribers.teachers[y] = query[0].first_name;
               }
               for(var y = 0;y< docs[i].subscribers.students;y++){
-                var query = await UserModel.findOne({ ID: docs[i].subscribers.students[y]});
-                docs[i].subscribers.students[y] = query.first_name;
+                var query = await UserModel.find({ ID: docs[i].subscribers.students[y]});
+                docs[i].subscribers.students[y] = query[0].first_name;
               }
             }
             
