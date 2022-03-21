@@ -150,7 +150,7 @@ app.use(function(req, res, next) {
             res.json({"status":"ERROR","message":"Insufficient permissions."})
           }else{
             CourseModel.find({}, function (err, docs) {
-              res.json(docs)
+              res.json({"status":"OK","course_list":docs})
             })
           }
     })
