@@ -115,14 +115,16 @@ app.use(function(req, res, next) {
             //for para mirar la id de cada usuario y buscarla
             //sacar el nombre y modificar la variable
             var names = []
+            var array = [];
             for(var element of docs){
               for(var element2 of element.subscribers.teachers){
                 var teacher = await UserModel.find({ ID: element2 })
                 names.push(teacher[0].first_name)
               }
               element.subscribers.teachers = names;
+              array.push(element)
             }
-            res.json({"status":"OK","course_list":element})
+            res.json({"status":"OK","course_list":array})
             
           }
         })
