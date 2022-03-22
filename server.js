@@ -6,7 +6,8 @@ const mongoose = require('mongoose');
 const UserModel = require('./models/users')
 const CourseModel = require('./models/courses');
 const functions = require('./functions');
-const crypto = require('crypto')
+const crypto = require('crypto');
+const { ConnectionPoolClosedEvent } = require('mongodb');
 //Nos conectamos al mongoAtlas
 mongoose.connect('mongodb+srv://victor:WzRZK8JRGBo8dyML@cluster0.vudsg.mongodb.net/ClassVRroomDB?retryWrites=true&w=majority')
 
@@ -113,18 +114,16 @@ app.use(function(req, res, next) {
           }else{
             //for para mirar la id de cada usuario y buscarla
             //sacar el nombre y modificar la variable
-            for(var i = 0;i< docs;i++){
-              for(var y = 0;y< docs[i].subscribers.teachers;y++){
-                var query = await UserModel.find({ ID: docs[i].subscribers.teachers[y]});
-                docs[i].subscribers.teachers[y] = query[0].first_name;
+            var names = []
+            for(var element of docs){
+              for(var element2 of element.subscribers.teachers){
+                var teacher = await UserModel.find({ ID: element2 })
+                names.push(teacher[0].first_name)
               }
-              for(var y = 0;y< docs[i].subscribers.students;y++){
-                var query = await UserModel.find({ ID: docs[i].subscribers.students[y]});
-                docs[i].subscribers.students[y] = query[0].first_name;
-              }
+              element.subscribers.teachers = names;
             }
+            res.json({"status":"OK","course_list":element})
             
-            res.json({"status":"OK","course_list":docs})
           }
         })
       }
