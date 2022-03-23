@@ -6,7 +6,8 @@ const mongoose = require('mongoose');
 const UserModel = require('./models/users')
 const CourseModel = require('./models/courses');
 const functions = require('./functions');
-const crypto = require('crypto')
+const crypto = require('crypto');
+const { ConnectionPoolClosedEvent } = require('mongodb');
 //Nos conectamos al mongoAtlas
 mongoose.connect('mongodb+srv://victor:WzRZK8JRGBo8dyML@cluster0.vudsg.mongodb.net/ClassVRroomDB?retryWrites=true&w=majority')
 
@@ -98,7 +99,7 @@ app.use(function(req, res, next) {
 
 
   //Get course
-  app.get('/api/get_courses',function(req,res){
+  app.get('/api/get_courses', function(req,res){
     //1. Buscamos el usuario con ese token
     UserModel.find({ session_token:req.query.session_token}, function (err, docs) {
       if(docs.length == 0){
@@ -107,11 +108,24 @@ app.use(function(req, res, next) {
         var id = docs[0].ID;
         
         //2. Buscamos los cursos que tengan ese usuario
-        CourseModel.find({$or:[{"subscribers.students":id},{"subscribers.teachers":id}]},function(err,docs){
+        CourseModel.find({$or:[{"subscribers.students":id},{"subscribers.teachers":id}]}, async function(err,docs){
           if(docs.length == 0){
             res.json({"status":"ERROR","message":"session_token is required"})
           }else{
-            res.json({"status":"OK","course_list":docs})
+            //for para mirar la id de cada usuario y buscarla
+            //sacar el nombre y modificar la variable
+            var names = []
+            var array = [];
+            for(var element of docs){
+              for(var element2 of element.subscribers.teachers){
+                var teacher = await UserModel.find({ ID: element2 })
+                names.push(teacher[0].first_name)
+              }
+              element.subscribers.teachers = names;
+              array.push(element)
+            }
+            res.json({"status":"OK","course_list":array})
+            
           }
         })
       }
@@ -137,9 +151,24 @@ app.use(function(req, res, next) {
             res.json({"status":"OK","course":docs})
           }
         })
-        
       }
     })
+  })
+
+  //Endpoint para el ERP de Navision
+  app.get('/api/export_database',function(req,res){
+    var user = req.query.user;
+    var password = req.query.password;
+    UserModel.find({ first_name: user, password: password }, function (err, docs) {
+          if(docs.length == 0){
+            res.json({"status":"ERROR","message":"Insufficient permissions."})
+          }else{
+            CourseModel.find({}, function (err, docs) {
+              res.json({"status":"OK","course_list":docs})
+            })
+          }
+    })
+
   })
 
 
