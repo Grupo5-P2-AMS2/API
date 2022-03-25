@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 //Importamos los modelos
 const UserModel = require('./models/users')
 const CourseModel = require('./models/courses');
+const PinsModel = require('./models/pins');
 const functions = require('./functions');
 const crypto = require('crypto');
 const { ConnectionPoolClosedEvent } = require('mongodb');
@@ -172,6 +173,25 @@ app.use(function(req, res, next) {
   })
 
 
+  //Pin request
+  app.get('/api/pin_request', async function(req,res){
+    var min = 0,
+     max = 9999,
+     pin = ("" + Math.floor(Math.random() * (max - min + 1))).substring(-4);
+    var arrayUser = await UserModel.find({session_token:req.query.session_token});
+    var arrayVRtaskID = await CourseModel.find({"vr_tasks.ID":req.query.VRtaskID});
+    if(arrayUser != []){
+      if(arrayVRtaskID != []){ 
+        PinsModel.insertMany({"pin":pin,"userId":arrayUser[0].ID,"VRtaskID":VRtaskID});
+        res.json({"status":"OK","PIN":pin})
+      }else{
+        res.json({"status":"ERROR","message":"VRtaskID is required"})
+      }
+    }else{
+      res.json({"status":"ERROR","message":"session_token is required"})
+    }
+
+  })
 }); 
 
 
