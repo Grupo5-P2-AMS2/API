@@ -1,3 +1,4 @@
+//Librerias
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 5000
@@ -7,7 +8,6 @@ const UserModel = require('./models/users')
 const CourseModel = require('./models/courses');
 const PinsModel = require('./models/pins');
 const functions = require('./functions');
-const crypto = require('crypto');
 const { ConnectionPoolClosedEvent } = require('mongodb');
 const { json } = require('express/lib/response');
 //Nos conectamos al mongoAtlas
@@ -65,7 +65,7 @@ app.use(function(req, res, next) {
           res.json({'status':status,'message':message})
         }else{
           status = "OK";
-          session_token = get_token(docs[0]);
+          session_token = functions.get_token(docs[0]);
           //session_token ='aa';
           //Me queda meterlo en la base de datos
           UserModel.updateOne({first_name: username, password: password}, 
@@ -260,27 +260,5 @@ app.use(function(req, res, next) {
 }); 
 
 
-app.listen(PORT, () => console.log(`Listening on ${ PORT }`));
-
-//Esto lo tengo que meter en functions.js
-function get_token(user) {
-  if (user.session_token != '') {
-    if (Date.now() < user.session_token_expiration_date) {
-      return user.session_token;
-    }
-  }
-  var random = Math.floor(Math.random() * 1000);
-  var new_token = crypto.createHash('md5').update(user.first_name + user.password + random).digest('hex');
-  var expiration_time = new Date(parseInt(Date.now()) + parseInt(process.env.TOKEN_EXPIRATION_TIME));
-  
-  UserModel.updateOne({first_name: user.first_name, password: user.password}, 
-    {session_token_expiration_date: expiration_time}, function (err, docs) {
-    if (err){
-        console.log(err)
-    }
-    else{
-        console.log("Updated Docs : ", docs);
-      }
-  });
-  return new_token;
-}
+//Abertura de puerto para el server
+app.listen(PORT, () => console.log(`Listening on https://localhost:${ PORT }`));
