@@ -160,7 +160,8 @@ app.use(function(req, res, next) {
     })
   })
 
-  //Endpoint para el ERP de Navision
+  //GET Endpoint para el ERP de Navision
+  //
   app.get('/api/export_database',function(req,res){
     var user = req.query.user;
     var password = req.query.password;
@@ -177,7 +178,9 @@ app.use(function(req, res, next) {
   })
 
 
-  //Pin request
+  //GET Pin request
+  //req: session_token, VRTaskID
+  //res: pin
   app.get('/api/pin_request', async function(req,res){
     var boolean = false;
     //While para comprobar generar pin y comprobar que no este ya creado
@@ -206,6 +209,8 @@ app.use(function(req, res, next) {
   })
 
   //GET start_vr_exercise
+  //req: pin
+  //res: username and VRExerciseID
   app.get('/api/start_vr_exercise', async function(req,res){
 
     if(!req.query.pin || String(req.query.pin).length != 4){
@@ -225,14 +230,12 @@ app.use(function(req, res, next) {
 
       res.send({"status":"OK","username":username,"VRexerciceID":exerciceID});
     }
-    var pin = req.query.pin;
-
-    
   })
 
-  //=====GET====
+  //=====POST=====
 
   //POST finish_vr_exercise
+  //req: pin, autograde, exerciceVersionID
   app.post('/api/finish_vr_exercise', async function(req,res){
     if(!req.body.pin || String(req.body.pin).length != 4){
       res.json({"status":"ERROR","message":"PIN is required"})
