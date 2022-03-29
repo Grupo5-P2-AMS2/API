@@ -9,6 +9,7 @@ const PinsModel = require('./models/pins');
 const functions = require('./functions');
 const crypto = require('crypto');
 const { ConnectionPoolClosedEvent } = require('mongodb');
+const { json } = require('express/lib/response');
 //Nos conectamos al mongoAtlas
 mongoose.connect('mongodb+srv://victor:WzRZK8JRGBo8dyML@cluster0.vudsg.mongodb.net/ClassVRroomDB?retryWrites=true&w=majority')
 
@@ -175,22 +176,86 @@ app.use(function(req, res, next) {
 
   //Pin request
   app.get('/api/pin_request', async function(req,res){
-    var min = 0,
-     max = 9999,
-     pin = ("" + Math.floor(Math.random() * (max - min + 1))).substring(-4);
-    var arrayUser = await UserModel.find({session_token:req.query.session_token});
-    var arrayVRtaskID = await CourseModel.find({"vr_tasks.ID":req.query.VRtaskID});
-    if(arrayUser != []){
-      if(arrayVRtaskID != []){ 
-        PinsModel.insertMany({"pin":pin,"userId":arrayUser[0].ID,"VRtaskID":VRtaskID});
-        res.json({"status":"OK","PIN":pin})
-      }else{
-        res.json({"status":"ERROR","message":"VRtaskID is required"})
+    var boolean = false;
+    //While para comprobar generar pin y comprobar que no este ya creado
+    while(!boolean){
+      var min = 0,
+      max = 9999,
+      pin = ("" + Math.floor(Math.random() * (max - min + 1))).substring(-4);
+      //Si el pin no esta en la base de datos seguimos
+      if(await PinsModel.find({"pin":pin}).count() == 0 && String(pin).length == 4){
+        boolean = true;
+        var arrayUser = await UserModel.find({session_token:req.query.session_token});
+        var arrayVRtaskID = await CourseModel.find({"vr_tasks.ID":req.query.VRtaskID});
+        if(arrayUser != []){
+          if(arrayVRtaskID != []){ 
+            PinsModel.insertMany({"pin":pin,"userId":arrayUser[0].ID,"VRtaskID":VRtaskID});
+            res.json({"status":"OK","PIN":pin})
+          }else{
+            res.json({"status":"ERROR","message":"VRtaskID is required"})
+          }
+        }else{
+          res.json({"status":"ERROR","message":"session_token is required"})
+        }   
       }
-    }else{
-      res.json({"status":"ERROR","message":"session_token is required"})
     }
+  })
 
+  //GET start_vr_exercise
+  app.get('/api/start_vr_exercise', async function(req,res){
+
+    if(req.query.pin == null || String(req.query.pin).length != 4){
+      res.json({"status":"ERROR","message":"PIN is required"})
+    }else{
+      var pin = await PinsModel.find({"pin":req.query.pin});
+
+      var queryUsername = await UserModel.find({ID:pin[0].userId});
+      var username = queryUsername[0].first_name;
+      var course = await CourseModel.find({"vr_tasks.ID":pin[0].VRtaskID});
+      
+      for (var element of course[0].vr_tasks){
+        if(element.ID == pin[0].VRtaskID){
+          var exerciceID = element.VRexID;
+        }
+      }
+
+      res.send({"status":"OK","username":username,"VRexerciceID":exerciceID});
+    }
+    var pin = req.query.pin;
+
+    
+  })
+  //POST
+  app.post('/api/finish_vr_exercise', async function(req,res){
+    if(req.body.pin == null || String(req.body.pin).length != 4){
+      res.json({"status":"ERROR","message":"PIN is required"})
+    }else{
+      if(req.body.VRexerciseID == null){
+        res.json({"status":"ERROR","message":"VRexerciseID is required"})
+      }else{
+        if(req.body.exerciseVersionID == null){
+          res.json({"status":"ERROR","message":"exerciseVersionID is required"})
+        }else{
+          var queryPin = await PinsModel.find({"pin":req.body.pin});
+          var VRtaskID = queryPin[0].VRtaskID;
+
+          var result = {"studentID":queryPin[0].userId,"autograde":req.body.autograde,"VRexerciseID":req.body.exerciseVersionID};
+          await CourseModel.updateOne({"vr_tasks.ID":VRtaskID},{ $push: { "vr_tasks.$.completions": result }}).then( err => {
+            if (err){
+                console.log( 'err', err)
+                return false;
+            } else {
+                console.log("Document updated")
+                return true;
+            }
+        });
+          //console.log(query)
+          res.json({"status":"OK","message":"Exercise data successfully stored."})
+        }
+      }
+      
+    }
+    
   })
 }); 
 
