@@ -15,11 +15,16 @@ mongoose.connect('mongodb+srv://victor:WzRZK8JRGBo8dyML@cluster0.vudsg.mongodb.n
 
 
 app.use(function(req, res, next) {
+  //Header para poder acceder a la API desde heroku (y para que no pete este)
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 
-  //Rutas de la API tipo GET
+  //=====GET====
+  // app.get('*', function (req, res) {
+  //   res.send("Hello world!")
+  // });
+  
   app.get('/', function (req, res) {
     res.send("Hello world!")
   });
@@ -66,8 +71,6 @@ app.use(function(req, res, next) {
         }else{
           status = "OK";
           session_token = functions.get_token(docs[0]);
-          //session_token ='aa';
-          //Me queda meterlo en la base de datos
           UserModel.updateOne({first_name: username, password: password}, 
             {session_token:session_token}, function (err, docs) {
             if (err){
@@ -183,13 +186,14 @@ app.use(function(req, res, next) {
       max = 9999,
       pin = ("" + Math.floor(Math.random() * (max - min + 1))).substring(-4);
       //Si el pin no esta en la base de datos seguimos
-      if(await PinsModel.find({"pin":pin}).count() == 0 && String(pin).length == 4){
+      var query = await PinsModel.find({"pin":pin});
+      if(query.length == 0 && String(pin).length == 4){
         boolean = true;
         var arrayUser = await UserModel.find({session_token:req.query.session_token});
         var arrayVRtaskID = await CourseModel.find({"vr_tasks.ID":req.query.VRtaskID});
-        if(arrayUser != []){
-          if(arrayVRtaskID != []){ 
-            PinsModel.insertMany({"pin":pin,"userId":arrayUser[0].ID,"VRtaskID":VRtaskID});
+        if(arrayUser != [] && req.query.session_token){
+          if(arrayVRtaskID != [] && req.query.VRtaskID){ 
+            PinsModel.insertMany({"pin":pin,"userId":arrayUser[0].ID,"VRtaskID":req.query.VRtaskID});
             res.json({"status":"OK","PIN":pin})
           }else{
             res.json({"status":"ERROR","message":"VRtaskID is required"})
@@ -204,7 +208,7 @@ app.use(function(req, res, next) {
   //GET start_vr_exercise
   app.get('/api/start_vr_exercise', async function(req,res){
 
-    if(req.query.pin == null || String(req.query.pin).length != 4){
+    if(!req.query.pin || String(req.query.pin).length != 4){
       res.json({"status":"ERROR","message":"PIN is required"})
     }else{
       var pin = await PinsModel.find({"pin":req.query.pin});
@@ -225,15 +229,18 @@ app.use(function(req, res, next) {
 
     
   })
-  //POST
+
+  //=====GET====
+
+  //POST finish_vr_exercise
   app.post('/api/finish_vr_exercise', async function(req,res){
-    if(req.body.pin == null || String(req.body.pin).length != 4){
+    if(!req.body.pin || String(req.body.pin).length != 4){
       res.json({"status":"ERROR","message":"PIN is required"})
     }else{
-      if(req.body.VRexerciseID == null){
+      if(!req.body.VRexerciseID){
         res.json({"status":"ERROR","message":"VRexerciseID is required"})
       }else{
-        if(req.body.exerciseVersionID == null){
+        if(!req.body.exerciseVersionID){
           res.json({"status":"ERROR","message":"exerciseVersionID is required"})
         }else{
           var queryPin = await PinsModel.find({"pin":req.body.pin});
@@ -248,8 +255,7 @@ app.use(function(req, res, next) {
                 console.log("Document updated")
                 return true;
             }
-        });
-          //console.log(query)
+            });
           res.json({"status":"OK","message":"Exercise data successfully stored."})
         }
       }
