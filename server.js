@@ -237,7 +237,7 @@ app.use(function(req, res, next) {
   //POST finish_vr_exercise
   //req: pin, autograde, exerciceVersionID
   app.post('/api/finish_vr_exercise', async function(req,res){
-    if(!req.body.pin || String(req.body.pin).length != 4){
+    if(!req.body.pin){
       res.json({"status":"ERROR","message":"PIN is required"})
     }else{
       if(!req.body.VRexerciseID){
