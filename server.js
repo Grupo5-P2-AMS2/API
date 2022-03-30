@@ -194,8 +194,8 @@ app.use(function(req, res, next) {
         boolean = true;
         var arrayUser = await UserModel.find({session_token:req.query.session_token});
         var arrayVRtaskID = await CourseModel.find({"vr_tasks.ID":req.query.VRtaskID});
-        if(arrayUser != [] && req.query.session_token){
-          if(arrayVRtaskID != [] && req.query.VRtaskID){ 
+        if(arrayUser != [] && req.query.session_token != undefined){
+          if(arrayVRtaskID != [] && req.query.VRtaskID != undefined){ 
             PinsModel.insertMany({"pin":pin,"userId":arrayUser[0].ID,"VRtaskID":req.query.VRtaskID});
             res.json({"status":"OK","PIN":pin})
           }else{
