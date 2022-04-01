@@ -1,3 +1,4 @@
+//Librerias
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 5000
@@ -5,19 +6,25 @@ const mongoose = require('mongoose');
 //Importamos los modelos
 const UserModel = require('./models/users')
 const CourseModel = require('./models/courses');
+const PinsModel = require('./models/pins');
 const functions = require('./functions');
-const crypto = require('crypto');
 const { ConnectionPoolClosedEvent } = require('mongodb');
+const { json } = require('express/lib/response');
 //Nos conectamos al mongoAtlas
 mongoose.connect('mongodb+srv://victor:WzRZK8JRGBo8dyML@cluster0.vudsg.mongodb.net/ClassVRroomDB?retryWrites=true&w=majority')
 
 
 app.use(function(req, res, next) {
+  //Header para poder acceder a la API desde heroku (y para que no pete este)
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 
-  //Rutas de la API tipo GET
+  //=====GET====
+  // app.get('*', function (req, res) {
+  //   res.send("Hello world!")
+  // });
+  
   app.get('/', function (req, res) {
     res.send("Hello world!")
   });
@@ -63,9 +70,7 @@ app.use(function(req, res, next) {
           res.json({'status':status,'message':message})
         }else{
           status = "OK";
-          session_token = get_token(docs[0]);
-          //session_token ='aa';
-          //Me queda meterlo en la base de datos
+          session_token = functions.get_token(docs[0]);
           UserModel.updateOne({first_name: username, password: password}, 
             {session_token:session_token}, function (err, docs) {
             if (err){
@@ -155,7 +160,8 @@ app.use(function(req, res, next) {
     })
   })
 
-  //Endpoint para el ERP de Navision
+  //GET Endpoint para el ERP de Navision
+  //
   app.get('/api/export_database',function(req,res){
     var user = req.query.user;
     var password = req.query.password;
@@ -172,30 +178,97 @@ app.use(function(req, res, next) {
   })
 
 
+  //GET Pin request
+  //req: session_token, VRTaskID
+  //res: pin
+  app.get('/api/pin_request', async function(req,res){
+    var boolean = false;
+    //While para comprobar generar pin y comprobar que no este ya creado
+    while(!boolean){
+      var min = 0,
+      max = 9999,
+      pin = ("" + Math.floor(Math.random() * (max - min + 1))).substring(-4);
+      //Si el pin no esta en la base de datos seguimos
+      var query = await PinsModel.find({"pin":pin});
+      if(query.length == 0 && String(pin).length == 4){
+        boolean = true;
+        var arrayUser = await UserModel.find({session_token:req.query.session_token});
+        var arrayVRtaskID = await CourseModel.find({"vr_tasks.ID":req.query.VRtaskID});
+        if(arrayUser[0] != undefined && req.query.session_token != undefined){
+          if(arrayVRtaskID != [] && req.query.VRtaskID != undefined){ 
+            PinsModel.insertMany({"pin":pin,"userId":arrayUser[0].ID,"VRtaskID":req.query.VRtaskID});
+            res.json({"status":"OK","PIN":pin})
+          }else{
+            res.json({"status":"ERROR","message":"VRtaskID is required"})
+          }
+        }else{
+          res.json({"status":"ERROR","message":"session_token is required"})
+        }   
+      }
+    }
+  })
+
+  //GET start_vr_exercise
+  //req: pin
+  //res: username and VRExerciseID
+  app.get('/api/start_vr_exercise', async function(req,res){
+
+    if(!req.query.pin || String(req.query.pin).length != 4){
+      res.json({"status":"ERROR","message":"PIN is required"})
+    }else{
+      var pin = await PinsModel.find({"pin":req.query.pin});
+
+      var queryUsername = await UserModel.find({ID:pin[0].userId});
+      var username = queryUsername[0].first_name;
+      var course = await CourseModel.find({"vr_tasks.ID":pin[0].VRtaskID});
+      
+      for (var element of course[0].vr_tasks){
+        if(element.ID == pin[0].VRtaskID){
+          var exerciceID = element.VRexID;
+        }
+      }
+
+      res.send({"status":"OK","username":username,"VRexerciceID":exerciceID});
+    }
+  })
+
+  //=====POST=====
+
+  //POST finish_vr_exercise
+  //req: pin, autograde, exerciceVersionID
+  app.post('/api/finish_vr_exercise', async function(req,res){
+    console.log(req.body)
+    if(!req.body.pin){
+      res.json({"status":"ERROR","message":"PIN is required"})
+    }else{
+      if(!req.body.VRexerciseID){
+        res.json({"status":"ERROR","message":"VRexerciseID is required"})
+      }else{
+        if(!req.body.exerciseVersionID){
+          res.json({"status":"ERROR","message":"exerciseVersionID is required"})
+        }else{
+          var queryPin = await PinsModel.find({"pin":req.body.pin});
+          var VRtaskID = queryPin[0].VRtaskID;
+
+          var result = {"studentID":queryPin[0].userId,"autograde":req.body.autograde,"VRexerciseID":req.body.exerciseVersionID};
+          await CourseModel.updateOne({"vr_tasks.ID":VRtaskID},{ $push: { "vr_tasks.$.completions": result }}).then( err => {
+            if (err){
+                console.log( 'err', err)
+                return false;
+            } else {
+                console.log("Document updated")
+                return true;
+            }
+            });
+          res.json({"status":"OK","message":"Exercise data successfully stored."})
+        }
+      }
+      
+    }
+    
+  })
 }); 
 
 
-app.listen(PORT, () => console.log(`Listening on ${ PORT }`));
-
-//Esto lo tengo que meter en functions.js
-function get_token(user) {
-  if (user.session_token != '') {
-    if (Date.now() < user.session_token_expiration_date) {
-      return user.session_token;
-    }
-  }
-  var random = Math.floor(Math.random() * 1000);
-  var new_token = crypto.createHash('md5').update(user.first_name + user.password + random).digest('hex');
-  var expiration_time = new Date(parseInt(Date.now()) + parseInt(process.env.TOKEN_EXPIRATION_TIME));
-  
-  UserModel.updateOne({first_name: user.first_name, password: user.password}, 
-    {session_token_expiration_date: expiration_time}, function (err, docs) {
-    if (err){
-        console.log(err)
-    }
-    else{
-        console.log("Updated Docs : ", docs);
-      }
-  });
-  return new_token;
-}
+//Abertura de puerto para el server
+app.listen(PORT, () => console.log(`Listening on https://localhost:${ PORT }`));
