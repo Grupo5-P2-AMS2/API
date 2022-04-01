@@ -21,6 +21,7 @@ mongoose.connect('mongodb+srv://victor:WzRZK8JRGBo8dyML@cluster0.vudsg.mongodb.n
   //res.header('Access-Control-Allow-Methods', '*');
   //res.header('Allow', '*');
   //next();
+app.use(app.router);
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
