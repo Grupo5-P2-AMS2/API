@@ -8,6 +8,7 @@ const UserModel = require('./models/users')
 const CourseModel = require('./models/courses');
 const PinsModel = require('./models/pins');
 const functions = require('./functions');
+var bodyParser = require("body-parser");
 const { ConnectionPoolClosedEvent } = require('mongodb');
 const { json } = require('express/lib/response');
 //Nos conectamos al mongoAtlas
@@ -21,7 +22,6 @@ mongoose.connect('mongodb+srv://victor:WzRZK8JRGBo8dyML@cluster0.vudsg.mongodb.n
   //res.header('Access-Control-Allow-Methods', '*');
   //res.header('Allow', '*');
   //next();
-app.use(app.router);
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
@@ -244,7 +244,7 @@ app.use((req, res, next) => {
 
   //POST finish_vr_exercise
   //req: pin, autograde, exerciceVersionID
-  app.post('/api/finish_vr_exercise', async function(req,res){
+  app.post('/api/finish_vr_exercise', bodyParser.urlencoded({extended:false}), async function(req,res){
     try{
       console.log(req.body)
       if(!req.body.pin){
