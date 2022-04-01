@@ -14,13 +14,20 @@ const { json } = require('express/lib/response');
 mongoose.connect('mongodb+srv://victor:WzRZK8JRGBo8dyML@cluster0.vudsg.mongodb.net/ClassVRroomDB?retryWrites=true&w=majority')
 
 
-app.use(function(req, res, next) {
+//app.use(function(req, res, next) {
   //Header para poder acceder a la API desde heroku (y para que no pete este)
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", '*');
-  res.header('Access-Control-Allow-Methods', '*');
-  res.header('Allow', '*');
+  //res.header("Access-Control-Allow-Origin", "*");
+  //res.header("Access-Control-Allow-Headers", '*');
+  //res.header('Access-Control-Allow-Methods', '*');
+  //res.header('Allow', '*');
+  //next();
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
   next();
+});
 
   //=====GET====
   // app.get('*', function (req, res) {
