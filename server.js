@@ -58,7 +58,7 @@ app.use((req, res, next) => {
       res.json(users);
     });
     
-  })
+  });
   
   
   //Ruta login
@@ -92,9 +92,7 @@ app.use((req, res, next) => {
           res.send({'status':status,"session_token":session_token})
         }
     });
-    
-  
-  })
+  });
   
   //Aqui solo tendremos que eliminar el token que nos llega de la base de datos
   app.get('/api/logout',function(req,res){
@@ -109,7 +107,7 @@ app.use((req, res, next) => {
                 res.json({'status':"OK","message":"Session successfully closed."});
             }
     });
-  })
+  });
 
 
   //Get course
@@ -144,7 +142,7 @@ app.use((req, res, next) => {
         })
       }
     })
-  })
+  });
 
   //Get Course Details
   app.get('/api/get_course_details',function(req,res){
@@ -167,7 +165,7 @@ app.use((req, res, next) => {
         })
       }
     })
-  })
+  });
 
   //GET Endpoint para el ERP de Navision
   //
@@ -184,7 +182,7 @@ app.use((req, res, next) => {
           }
     })
 
-  })
+  });
 
 
   //GET Pin request
@@ -215,7 +213,7 @@ app.use((req, res, next) => {
         }   
       }
     }
-  })
+  });
 
   //GET start_vr_exercise
   //req: pin
@@ -239,17 +237,15 @@ app.use((req, res, next) => {
 
       res.send({"status":"OK","username":username,"VRexerciceID":exerciceID});
     }
-  })
+  });
 
   //=====POST=====
 
   //POST finish_vr_exercise
   //req: pin, autograde, exerciceVersionID
   app.post('/api/finish_vr_exercise', async function(req,res){
-    console.log(req.body)
-    
-    
     try{
+      console.log(req.body)
       if(!req.body.pin){
         res.json({"status":"ERROR","message":"PIN is required"})
       }else{
@@ -280,8 +276,8 @@ app.use((req, res, next) => {
     }catch(err){
       console.log("ERR:"+err)
     }
-  })
-}); 
+  });
+//}); 
 
 
 //Abertura de puerto para el server
