@@ -236,21 +236,21 @@ app.use(function(req, res, next) {
 
   //POST finish_vr_exercise
   //req: pin, autograde, exerciceVersionID
-  app.get('/api/finish_vr_exercise', async function(req,res){
-    console.log(req.query)
-    if(!req.query.pin){
+  app.post('/api/finish_vr_exercise', async function(req,res){
+    console.log(req.body)
+    if(!req.body.pin){
       res.json({"status":"ERROR","message":"PIN is required"})
     }else{
-      if(!req.query.VRexerciseID){
+      if(!req.body.VRexerciseID){
         res.json({"status":"ERROR","message":"VRexerciseID is required"})
       }else{
-        if(!req.query.exerciseVersionID){
+        if(!req.body.exerciseVersionID){
           res.json({"status":"ERROR","message":"exerciseVersionID is required"})
         }else{
-          var queryPin = await PinsModel.find({"pin":req.query.pin});
+          var queryPin = await PinsModel.find({"pin":req.body.pin});
           var VRtaskID = queryPin[0].VRtaskID;
 
-          var result = {"studentID":queryPin[0].userId,"autograde":req.query.autograde,"VRexerciseID":req.query.exerciseVersionID};
+          var result = {"studentID":queryPin[0].userId,"autograde":req.body.autograde,"VRexerciseID":req.body.exerciseVersionID};
           await CourseModel.updateOne({"vr_tasks.ID":VRtaskID},{ $push: { "vr_tasks.$.completions": result }}).then( err => {
             if (err){
                 console.log( 'err', err)
