@@ -244,7 +244,7 @@ app.use((req, res, next) => {
 
   //POST finish_vr_exercise
   //req: pin, autograde, exerciceVersionID
-  app.post('/api/finish_vr_exercise', bodyParser.urlencoded({extended:false}), async function(req,res){
+  app.post('/api/finish_vr_exercise', bodyParser.json()), async function(req,res){
     try{
       console.log(req)
       if(!req.body.pin){
