@@ -17,9 +17,9 @@ mongoose.connect('mongodb+srv://victor:WzRZK8JRGBo8dyML@cluster0.vudsg.mongodb.n
 app.use(function(req, res, next) {
   //Header para poder acceder a la API desde heroku (y para que no pete este)
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-  res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.header("Access-Control-Allow-Headers", '*');
+  res.header('Access-Control-Allow-Methods', '*');
+  //res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
   next();
 
   //=====GET====
