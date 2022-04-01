@@ -271,7 +271,7 @@ app.use(function(req, res, next) {
         
       }
     }catch(err){
-      console.log("ERRO MMG")
+      console.log("ERR:"+err)
     }
   })
 }); 
