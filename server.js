@@ -246,7 +246,7 @@ app.use((req, res, next) => {
   //req: pin, autograde, exerciceVersionID
   app.post('/api/finish_vr_exercise', bodyParser.urlencoded({extended:false}), async function(req,res){
     try{
-      console.log(req)
+      console.log(req.body)
       if(!req.body.pin){
         res.json({"status":"ERROR","message":"PIN is required"})
       }else{
