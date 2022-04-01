@@ -231,18 +231,19 @@ app.use(function(req, res, next) {
       res.json({"status":"ERROR","message":"PIN is required"})
     }else{
       if(req.body.autograde == null){
-        res.json({"status":"ERROR","message":"autograde is required"})
+        res.json({"status":"ERROR","message":"Missing autograde"})
       } else {
         if(req.body.VRexerciseID == null){
-          res.json({"status":"ERROR","message":"VRexerciseID is required"})
+          res.json({"status":"ERROR","message":"Missing VRexerciseID"})
         }else{
           if(req.body.exerciseVersionID == null){
-            res.json({"status":"ERROR","message":"exerciseVersionID is required"})
+            res.json({"status":"ERROR","message":"Missing exerciseVersion"})
           }else{
             var queryPin = await PinsModel.find({"pin":req.body.pin});
             var VRtaskID = queryPin[0].VRtaskID;
   
-            var result = {"studentID":queryPin[0].userId,"autograde":req.body.autograde,"VRexerciseID":req.body.exerciseVersionID};
+            var result = {"studentID":queryPin[0].userId,"autograde":req.body.autograde,"VRexerciseID":req.body.VRexerciseID, 
+            "exerciseVersionID":req.body.exerciseVersionID};
             await CourseModel.updateOne({"vr_tasks.ID":VRtaskID},{ $push: { "vr_tasks.$.completions": result }}).then( err => {
               if (err){
                   console.log( 'err', err)
@@ -257,10 +258,7 @@ app.use(function(req, res, next) {
           }
         }
       }
-      
-      
     }
-    
   })
 }); 
 
