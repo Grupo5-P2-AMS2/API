@@ -237,6 +237,9 @@ app.use(function(req, res, next) {
   //POST finish_vr_exercise
   //req: pin, autograde, exerciceVersionID
   app.post('/api/finish_vr_exercise', async function(req,res){
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
     console.log(req.body)
     if(!req.body.pin){
       res.json({"status":"ERROR","message":"PIN is required"})
