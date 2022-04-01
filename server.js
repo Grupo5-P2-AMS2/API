@@ -150,7 +150,7 @@ app.use(function(req, res, next) {
             res.json({"status":"ERROR","message":"courseID is required"})
           }
           else{
-            res.json({"status":"OK","course":docs})
+            res.json({"status":"OK","course":docs,"userID":id})
           }
         })
       }
@@ -230,29 +230,34 @@ app.use(function(req, res, next) {
     if(req.body.pin == null || String(req.body.pin).length != 4){
       res.json({"status":"ERROR","message":"PIN is required"})
     }else{
-      if(req.body.VRexerciseID == null){
-        res.json({"status":"ERROR","message":"VRexerciseID is required"})
-      }else{
-        if(req.body.exerciseVersionID == null){
-          res.json({"status":"ERROR","message":"exerciseVersionID is required"})
+      if(req.body.autograde == null){
+        res.json({"status":"ERROR","message":"autograde is required"})
+      } else {
+        if(req.body.VRexerciseID == null){
+          res.json({"status":"ERROR","message":"VRexerciseID is required"})
         }else{
-          var queryPin = await PinsModel.find({"pin":req.body.pin});
-          var VRtaskID = queryPin[0].VRtaskID;
-
-          var result = {"studentID":queryPin[0].userId,"autograde":req.body.autograde,"VRexerciseID":req.body.exerciseVersionID};
-          await CourseModel.updateOne({"vr_tasks.ID":VRtaskID},{ $push: { "vr_tasks.$.completions": result }}).then( err => {
-            if (err){
-                console.log( 'err', err)
-                return false;
-            } else {
-                console.log("Document updated")
-                return true;
-            }
-        });
-          //console.log(query)
-          res.json({"status":"OK","message":"Exercise data successfully stored."})
+          if(req.body.exerciseVersionID == null){
+            res.json({"status":"ERROR","message":"exerciseVersionID is required"})
+          }else{
+            var queryPin = await PinsModel.find({"pin":req.body.pin});
+            var VRtaskID = queryPin[0].VRtaskID;
+  
+            var result = {"studentID":queryPin[0].userId,"autograde":req.body.autograde,"VRexerciseID":req.body.exerciseVersionID};
+            await CourseModel.updateOne({"vr_tasks.ID":VRtaskID},{ $push: { "vr_tasks.$.completions": result }}).then( err => {
+              if (err){
+                  console.log( 'err', err)
+                  return false;
+              } else {
+                  console.log("Document updated")
+                  return true;
+              }
+          });
+            //console.log(query)
+            res.json({"status":"OK","message":"Exercise data successfully stored."})
+          }
         }
       }
+      
       
     }
     
