@@ -241,34 +241,38 @@ app.use(function(req, res, next) {
   app.post('/api/finish_vr_exercise', async function(req,res){
     console.log(req.body)
     
-    if(!req.body.pin){
-      res.json({"status":"ERROR","message":"PIN is required"})
-    }else{
-      if(!req.body.VRexerciseID){
-        res.json({"status":"ERROR","message":"VRexerciseID is required"})
-      }else{
-        if(!req.body.exerciseVersionID){
-          res.json({"status":"ERROR","message":"exerciseVersionID is required"})
-        }else{
-          var queryPin = await PinsModel.find({"pin":req.body.pin});
-          var VRtaskID = queryPin[0].VRtaskID;
-
-          var result = {"studentID":queryPin[0].userId,"autograde":req.body.autograde,"VRexerciseID":req.body.exerciseVersionID};
-          await CourseModel.updateOne({"vr_tasks.ID":VRtaskID},{ $push: { "vr_tasks.$.completions": result }}).then( err => {
-            if (err){
-                console.log( 'err', err)
-                return false;
-            } else {
-                console.log("Document updated")
-                return true;
-            }
-            });
-          res.json({"status":"OK","message":"Exercise data successfully stored."})
-        }
-      }
-      
-    }
     
+    try{
+      if(!req.body.pin){
+        res.json({"status":"ERROR","message":"PIN is required"})
+      }else{
+        if(!req.body.VRexerciseID){
+          res.json({"status":"ERROR","message":"VRexerciseID is required"})
+        }else{
+          if(!req.body.exerciseVersionID){
+            res.json({"status":"ERROR","message":"exerciseVersionID is required"})
+          }else{
+            var queryPin = await PinsModel.find({"pin":req.body.pin});
+            var VRtaskID = queryPin[0].VRtaskID;
+  
+            var result = {"studentID":queryPin[0].userId,"autograde":req.body.autograde,"VRexerciseID":req.body.exerciseVersionID};
+            await CourseModel.updateOne({"vr_tasks.ID":VRtaskID},{ $push: { "vr_tasks.$.completions": result }}).then( err => {
+              if (err){
+                  console.log( 'err', err)
+                  return false;
+              } else {
+                  console.log("Document updated")
+                  return true;
+              }
+              });
+            res.json({"status":"OK","message":"Exercise data successfully stored."})
+          }
+        }
+        
+      }
+    }catch(err){
+      console.log("ERRO MMG")
+    }
   })
 }); 
 
