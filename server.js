@@ -1,6 +1,7 @@
 //Librerias
 const express = require('express');
 const app = express();
+const router = express.Router();
 const PORT = process.env.PORT || 5000
 const mongoose = require('mongoose');
 var cors = require('cors')
@@ -23,26 +24,27 @@ mongoose.connect('mongodb+srv://victor:WzRZK8JRGBo8dyML@cluster0.vudsg.mongodb.n
   //res.header('Access-Control-Allow-Methods', '*');
   //res.header('Allow', '*');
   //next();
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-  res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
-  next();
+// app.use((req, res, next) => {
+//   res.header('Access-Control-Allow-Origin', '*');
+//   res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
+//   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+//   res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
+//   next();
   
-});
-
+// });
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
   //=====GET====
   // app.get('*', function (req, res) {
   //   res.send("Hello world!")
   // });
   
-  app.get('/', function (req, res) {
+  router.get('/', function (req, res) {
     res.send("Hello world!")
   });
   
   //Ruta para ver los cursos
-  app.get('/courses', function (req, res) {
+  router.get('/courses', function (req, res) {
     CourseModel.find(function (err, users) {
       if (err) {
         res.send(err);
@@ -53,7 +55,7 @@ app.use((req, res, next) => {
   });
   
   //Ruta para ver los usuarios (alumnos y profesores)
-  app.get('/users', function (req, res) {
+  router.get('/users', function (req, res) {
     UserModel.find(function (err, users) {
       if (err) {
         res.send(err);
@@ -69,7 +71,7 @@ app.use((req, res, next) => {
   //1. Recoger los datos que nos llega con el req y comprobar si existen en la base de datos
   //2. Generar el token y meterlo en la base de datos
   
-  app.get('/api/login',function(req,res){
+  router.get('/api/login',function(req,res){
     var username = req.query.username;
     var password = req.query.password;
     var status,message = "";
@@ -98,7 +100,7 @@ app.use((req, res, next) => {
   });
   
   //Aqui solo tendremos que eliminar el token que nos llega de la base de datos
-  app.get('/api/logout',function(req,res){
+  router.get('/api/logout',function(req,res){
     UserModel.updateOne({session_token: req.query.session_token }, 
             {session_token:""}, function (err, docs) {
             if (err){
@@ -114,7 +116,7 @@ app.use((req, res, next) => {
 
 
   //Get course
-  app.get('/api/get_courses', function(req,res){
+  router.get('/api/get_courses', function(req,res){
     //1. Buscamos el usuario con ese token
     UserModel.find({ session_token:req.query.session_token}, function (err, docs) {
       if(docs.length == 0){
@@ -148,7 +150,7 @@ app.use((req, res, next) => {
   });
 
   //Get Course Details
-  app.get('/api/get_course_details',function(req,res){
+  router.get('/api/get_course_details',function(req,res){
     //1. Buscamos el usuario con ese token
     var _id = req.query.courseID;
     UserModel.find({ session_token:req.query.session_token}, function (err, docs) {
@@ -172,7 +174,7 @@ app.use((req, res, next) => {
 
   //GET Endpoint para el ERP de Navision
   //
-  app.get('/api/export_database',function(req,res){
+  router.get('/api/export_database',function(req,res){
     var user = req.query.user;
     var password = req.query.password;
     UserModel.find({ first_name: user, password: password }, function (err, docs) {
@@ -191,7 +193,7 @@ app.use((req, res, next) => {
   //GET Pin request
   //req: session_token, VRTaskID
   //res: pin
-  app.get('/api/pin_request', async function(req,res){
+  router.get('/api/pin_request', async function(req,res){
     var boolean = false;
     //While para comprobar generar pin y comprobar que no este ya creado
     while(!boolean){
@@ -221,7 +223,7 @@ app.use((req, res, next) => {
   //GET start_vr_exercise
   //req: pin
   //res: username and VRExerciseID
-  app.get('/api/start_vr_exercise', async function(req,res){
+  router.get('/api/start_vr_exercise', async function(req,res){
 
     if(!req.query.pin || String(req.query.pin).length != 4){
       res.json({"status":"ERROR","message":"PIN is required"})
@@ -246,7 +248,7 @@ app.use((req, res, next) => {
 
   //POST finish_vr_exercise
   //req: pin, autograde, exerciceVersionID
-  app.post('/api/finish_vr_exercise',cors(), async function(req,res){
+  router.post('/api/finish_vr_exercise', async function(req,res){
     try{
       console.log(req.body)
       if(!req.body.pin){
@@ -280,6 +282,7 @@ app.use((req, res, next) => {
       console.log("ERR:"+err)
     }
   });
+  app.use("/", router);
 //}); 
 
 
