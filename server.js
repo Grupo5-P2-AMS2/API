@@ -14,7 +14,7 @@ var bodyParser = require("body-parser");
 const { ConnectionPoolClosedEvent } = require('mongodb');
 const { json } = require('express/lib/response');
 //Nos conectamos al mongoAtlas
-mongoose.connect('mongodb+srv://victor:WzRZK8JRGBo8dyML@cluster0.vudsg.mongodb.net/ClassVRroomDB?retryWrites=true&w=majority')
+mongoose.connect(process.env.DATABASE_URL)
 
 
 //app.use(function(req, res, next) {
