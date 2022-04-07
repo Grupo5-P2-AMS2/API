@@ -4,7 +4,7 @@ const CourseModel = require('./models/courses');
 const PinsModel = require('./models/pins');
 const functions = require('./functions');
 module.exports = {
-    
+    //Funcion para generar token
     generateRandomString : function(num) {
         const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let result1= ' ';
@@ -26,7 +26,7 @@ module.exports = {
         var expiration_time = new Date(parseInt(Date.now()) + parseInt(process.env.TOKEN_EXPIRATION_TIME));
         
         UserModel.updateOne({first_name: user.first_name, password: user.password}, 
-        {session_token_expiration_date: expiration_time});
+        {session_token_expiration_date: process.env.TOKEN_EXPIRATION_TIME});
         return new_token;
     }
 }
