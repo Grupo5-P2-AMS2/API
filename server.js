@@ -1,4 +1,4 @@
-//Librerias
+//==Dependencias
 const express = require('express');
 const app = express();
 const router = express.Router();
@@ -13,17 +13,12 @@ const functions = require('./functions');
 var bodyParser = require("body-parser");
 const { ConnectionPoolClosedEvent } = require('mongodb');
 const { json } = require('express/lib/response');
-//Nos conectamos al mongoAtlas
+
+//==Conexion a la base de datos
 mongoose.connect(process.env.DATABASE_URL)
 
 
-//app.use(function(req, res, next) {
-  //Header para poder acceder a la API desde heroku (y para que no pete este)
-  //res.header("Access-Control-Allow-Origin", "*");
-  //res.header("Access-Control-Allow-Headers", '*');
-  //res.header('Access-Control-Allow-Methods', '*');
-  //res.header('Allow', '*');
-  //next();
+//==Configuraciones
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
@@ -34,16 +29,16 @@ app.use((req, res, next) => {
 });
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-//=====GET====
-// app.get('*', function (req, res) {
-//   res.send("Hello world!")
-// });
+
+//=====GET=====
 
 router.get('/', function (req, res) {
   res.send("Hello world!")
 });
 
-//Ruta para ver los cursos
+//==Endpoints de Ejemplo
+
+//GET courses
 router.get('/courses', function (req, res) {
   CourseModel.find(function (err, users) {
     if (err) {
@@ -54,7 +49,7 @@ router.get('/courses', function (req, res) {
 
 });
 
-//Ruta para ver los usuarios (alumnos y profesores)
+//GET users(alumnos y profesores)
 router.get('/users', function (req, res) {
   UserModel.find(function (err, users) {
     if (err) {
@@ -65,8 +60,9 @@ router.get('/users', function (req, res) {
   
 });
 
+//==
 
-//Ruta login
+//GET /api/login
 //Aqui lo que haremos sera lo siguiente:
 //1. Recoger los datos que nos llega con el req y comprobar si existen en la base de datos
 //2. Generar el token y meterlo en la base de datos
@@ -99,6 +95,7 @@ router.get('/api/login',function(req,res){
   });
 });
 
+//GET /api/logout
 //Aqui solo tendremos que eliminar el token que nos llega de la base de datos
 router.get('/api/logout',function(req,res){
   UserModel.updateOne({session_token: req.query.session_token }, 
@@ -115,7 +112,9 @@ router.get('/api/logout',function(req,res){
 });
 
 
-//Get course
+//GET /api/get_courses
+//req: session_token
+//res: lista de cursos
 router.get('/api/get_courses', function(req,res){
   //1. Buscamos el usuario con ese token
   UserModel.find({ session_token:req.query.session_token}, function (err, docs) {
@@ -150,6 +149,8 @@ router.get('/api/get_courses', function(req,res){
 });
 
 //Get Course Details
+//req: session_token, course_id
+//res: status, message, course_details
 router.get('/api/get_course_details',function(req,res){
   //1. Buscamos el usuario con ese token
   var _id = req.query.courseID;
@@ -173,7 +174,8 @@ router.get('/api/get_course_details',function(req,res){
 });
 
 //GET Endpoint para el ERP de Navision
-//
+//req: user, password
+//res: status, course_list
 router.get('/api/export_database',function(req,res){
   var user = req.query.user;
   var password = req.query.password;
@@ -190,7 +192,7 @@ router.get('/api/export_database',function(req,res){
 });
 
 
-//GET Pin request
+//GET /api/pin_request
 //req: session_token, VRTaskID
 //res: pin
 router.get('/api/pin_request', async function(req,res){
@@ -220,7 +222,7 @@ router.get('/api/pin_request', async function(req,res){
   }
 });
 
-//GET start_vr_exercise
+//GET /api/start_vr_exercise
 //req: pin
 //res: username and VRExerciseID
 router.get('/api/start_vr_exercise', async function(req,res){
@@ -246,7 +248,7 @@ router.get('/api/start_vr_exercise', async function(req,res){
 
 //=====POST=====
 
-//POST finish_vr_exercise
+//POST /api/finish_vr_exercise
 //req: pin, autograde, exerciceVersionID
 router.post('/api/finish_vr_exercise', async function(req,res){
   try{
@@ -272,7 +274,7 @@ router.post('/api/finish_vr_exercise', async function(req,res){
                 console.log("Document updated")
                 return true;
             }
-            });
+          });
           res.json({"status":"OK","message":"Exercise data successfully stored."})
         }
       }
@@ -281,9 +283,10 @@ router.post('/api/finish_vr_exercise', async function(req,res){
     console.log("ERR:"+err)
   }
 });
-app.use("/", router);
-//}); 
 
 
-//Abertura de puerto para el server
+app.use("/", router); 
+
+
+//=====SERVER=====
 app.listen(PORT, () => console.log(`Listening on https://localhost:${ PORT }`));

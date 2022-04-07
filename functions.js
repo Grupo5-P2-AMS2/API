@@ -4,7 +4,7 @@ const CourseModel = require('./models/courses');
 const PinsModel = require('./models/pins');
 const functions = require('./functions');
 module.exports = {
-    
+    //Funcion para generar token
     generateRandomString : function(num) {
         const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let result1= ' ';
