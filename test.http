@@ -1,0 +1,3 @@
+curl -X POST http://localhost:5000/api/finish_vr_exercise  -H 
+"Content-Type:application/json" -d 
+'{"pin":1234, "VRexerciseID": 12, "exerciseVersionID": 22, "autograde": {"passed_items":4, "failed_items":3, "score":73} }'
